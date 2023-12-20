@@ -1,0 +1,38 @@
+name: Check Terraform Linting
+run-name: ${{ github.actor }} is Checking Terrform Linting 🚀
+on: [push]
+jobs:
+  Run-Terraform-Tf-Lint:
+    runs-on: ubuntu-latest
+    steps:      
+      - name: Check out repository code
+        uses: actions/checkout@v4    
+      - uses: actions/cache@v3
+        name: Cache plugin dir
+        with:
+          path: ~/.tflint.d/plugins
+          key: ubuntu-latest-tflint-${{ hashFiles('.tflint.hcl') }}
+      - uses: terraform-linters/setup-tflint@v3
+        name: Setup TFLint
+        with:
+          tflint_version: v0.48.0          
+      - name: Check Terraform Linting
+        continue-on-error: false
+        run: |
+          set +e
+          TOPDIR=`pwd`
+          EXCODE=0
+          while IFS= read -r f; do 
+            TFDIR=$(dirname $f)
+            cd $TFDIR
+            echo "==========================="
+            echo "Running checks for: $TFDIR"
+            echo "==========================="
+            tflint --init -c $TOPDIR/.tflint.hcl
+            tflint
+            EXCODE=$(($EXCODE + $?))
+            cd -
+          done <<< $(find . -name main.tf -type f)
+          exit $EXCODE
+          
+          
