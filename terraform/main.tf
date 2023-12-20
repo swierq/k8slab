@@ -1,34 +1,6 @@
-provider "aws" {
-  region = "eu-west-1"
+locals {
+  name_all = "k8slab"
 }
-
-provider "kubernetes" {
-  host                   = module.eks.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", "k8slab"]
-  }
-}
-
-provider "helm" {
-  kubernetes {
-    host                   = module.eks.cluster_endpoint
-    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
-
-    exec {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      command     = "aws"
-      # This requires the awscli to be installed locally where Terraform is executed
-      args = ["eks", "get-token", "--cluster-name", "k8slab"]
-    }
-
-  }
-}
-
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -50,7 +22,7 @@ module "vpc" {
   tags = {
     Owner       = "przem"
     Environment = "dev"
-    App         = "k8slab"
+    App         = local.name_all
   }
 }
 
@@ -58,7 +30,7 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "19.0.4"
 
-  cluster_name    = "k8slab"
+  cluster_name    = local.name_all
   cluster_version = "1.28"
 
   vpc_id                         = module.vpc.vpc_id
@@ -71,7 +43,7 @@ module "eks" {
   }
 
   tags = {
-    Name        = "k8slab"
+    Name        = local.name_all
     Owner       = "przem"
     Environment = "dev"
     App         = "k8slab"
@@ -95,26 +67,30 @@ module "alb-ingress-controller" {
   source       = "campaand/alb-ingress-controller/aws"
   version      = "2.0.0"
   cluster_name = module.eks.cluster_name
+  depends_on = [
+    module.eks
+  ]
 }
 
 
 resource "kubernetes_namespace" "k8s" {
   metadata {
-    name = "k8slab"
+    name = local.name_all
   }
 }
 
-resource "kubernetes_service_account" "admin" {
+# will use it in in gh actions
+resource "kubernetes_service_account" "k8slab" {
   metadata {
-    name      = "admin"
-    namespace = "k8slab"
+    name      = local.name_all
+    namespace = local.name_all
   }
 }
 
 resource "kubernetes_role" "k8slab" {
   metadata {
-    name      = "k8slab"
-    namespace = "k8slab"
+    name      = local.name_all
+    namespace = local.name_all
   }
 
   rule {
@@ -126,18 +102,18 @@ resource "kubernetes_role" "k8slab" {
 
 resource "kubernetes_role_binding" "k8slab" {
   metadata {
-    name      = "k8slab"
-    namespace = "k8slab"
+    name      = local.name_all
+    namespace = local.name_all
   }
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "Role"
-    name      = "k8slab"
+    name      = kubernetes_role.k8slab.metadata[0].name
   }
 
   subject {
     kind      = "ServiceAccount"
-    name      = "admin"
-    namespace = "k8slab"
+    name      = kubernetes_service_account.k8slab.metadata[0].name
+    namespace = local.name_all
   }
 }
