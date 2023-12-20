@@ -1,0 +1,40 @@
+name: Go Lint, Test And Build
+run-name: ${{ github.actor }} is Testing And Building 🚀
+on: [push]
+jobs:
+  Run-Go-Lint-Test-Build:
+    runs-on: ubuntu-latest
+    steps:      
+      - name: Check out repository code
+        uses: actions/checkout@v4  
+      - name: Setup Go environment
+        uses: actions/setup-go@v4.1.0
+        with:    
+          go-version: 1.21.4          
+      - name: golangci-lint        
+        uses: golangci/golangci-lint-action@v3                
+        with:      
+          version: v1.55.2
+          working-directory: ./goapp
+      - name: Make Test
+        working-directory: ./goapp
+        continue-on-error: false
+        run: make test
+      - name: Make Build
+        working-directory: ./goapp
+        continue-on-error: false
+        run: make build
+      - name: Build & push Docker image
+        uses: mr-smithers-excellent/docker-build-push@v6
+        with:
+          image: swierq/goapp
+          tags: v1, latest
+          registry: registry.hub.docker.com
+          dockerfile: goapp/build/package/Dockerfile
+          directory: goapp
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Make Clean
+        working-directory: ./goapp
+        continue-on-error: false
+        run: make clean
