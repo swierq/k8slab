@@ -13,6 +13,7 @@ import (
 
 func main() {
 	root := cmd.New()
+
 	port := root.String("port", "8080", "Listen Port")
 	debug := root.Bool("debug", false, "Debug logging")
 	_ = root.Parse()
