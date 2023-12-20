@@ -26,6 +26,7 @@ jobs:
         run: make build
       - name: Build & push Docker image
         uses: mr-smithers-excellent/docker-build-push@v6
+        if: github.ref == 'refs/heads/master'
         with:
           image: swierq/goapp
           tags: v1, latest
