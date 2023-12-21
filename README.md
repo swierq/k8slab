@@ -1,5 +1,8 @@
 # k8slab
 
+New version is published to docker hub on tag creation. Tag has to start with letter v. After tagging new image gets published and helm upgrade is being ran.
+
+
 ## Starting a Cluster
 
 ```
@@ -49,6 +52,4 @@ kubectl create token k8slab -n k8slab
 
 ## TODO:
 
-- github action applying helm chart
-- versioning for goapp (release on tags etc...)
 - Adding RDS to terraform, injecting RDS password as secret to k8s, implementing DB in goapp
