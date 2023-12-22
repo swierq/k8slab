@@ -117,3 +117,76 @@ resource "kubernetes_role_binding" "k8slab" {
     namespace = local.name_all
   }
 }
+
+resource "random_password" "dbpass" {
+  length  = 8
+  special = false
+}
+
+module "db" {
+  source  = "terraform-aws-modules/rds/aws"
+  version = "6.3.0"
+
+  identifier = local.name_all
+
+  engine               = "postgres"
+  engine_version       = "14"
+  family               = "postgres14" # DB parameter group
+  major_engine_version = "14"         # DB option group
+  instance_class       = "db.t4g.small"
+
+  allocated_storage = 10
+  storage_type      = "gp2"
+
+  db_name  = local.name_all
+  username = local.name_all
+  password = resource.random_password.dbpass.result
+  port     = 5432
+
+  multi_az = false
+  #db_subnet_group_name   = module.vpc.database_subnet_group
+  #vpc_security_group_ids = [module.security_group.security_group_id]
+  create_db_subnet_group = true
+  subnet_ids             = module.vpc.private_subnets
+
+
+  maintenance_window              = "Mon:00:00-Mon:03:00"
+  backup_window                   = "03:00-06:00"
+  enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
+  create_cloudwatch_log_group     = true
+
+  backup_retention_period = 1
+  skip_final_snapshot     = true
+  deletion_protection     = false
+
+
+  parameters = [
+    {
+      name  = "autovacuum"
+      value = 1
+    },
+    {
+      name  = "client_encoding"
+      value = "utf8"
+    }
+  ]
+
+  tags = {
+    Owner       = "przem"
+    Environment = "dev"
+    App         = local.name_all
+  }
+
+}
+
+resource "kubernetes_secret" "k8sdb" {
+  metadata {
+    name      = local.name_all
+    namespace = local.name_all
+  }
+
+  data = {
+    POSTGRES_URL  = module.db.db_instance_endpoint
+    POSTGRES_PASS = resource.random_password.dbpass.result
+  }
+}
