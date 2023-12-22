@@ -123,6 +123,33 @@ resource "random_password" "dbpass" {
   special = false
 }
 
+module "security_group" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> 5.0"
+
+  name        = local.name_all
+  description = "PostgreSQL security group"
+  vpc_id      = module.vpc.vpc_id
+
+  # ingress
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = 5432
+      to_port     = 5432
+      protocol    = "tcp"
+      description = "PostgreSQL access from within VPC"
+      cidr_blocks = module.vpc.vpc_cidr_block
+    },
+  ]
+  tags = {
+    Name        = local.name_all
+    Owner       = "przem"
+    Environment = "dev"
+    App         = "k8slab"
+  }
+}
+
+
 module "db" {
   source  = "terraform-aws-modules/rds/aws"
   version = "6.3.0"
@@ -148,6 +175,7 @@ module "db" {
   #vpc_security_group_ids = [module.security_group.security_group_id]
   create_db_subnet_group = true
   subnet_ids             = module.vpc.private_subnets
+  vpc_security_group_ids = [module.security_group.security_group_id]
 
 
   maintenance_window              = "Mon:00:00-Mon:03:00"
