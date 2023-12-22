@@ -186,7 +186,9 @@ resource "kubernetes_secret" "k8sdb" {
   }
 
   data = {
-    POSTGRES_URL  = module.db.db_instance_endpoint
-    POSTGRES_PASS = resource.random_password.dbpass.result
+    POSTGRES_URL    = module.db.db_instance_endpoint
+    POSTGRES_PASS   = resource.random_password.dbpass.result
+    POSTGRES_DBNAME = local.name_all
+    POSTGRES_USER   = local.name_all
   }
 }
