@@ -17,6 +17,12 @@ envSecrets:
   - secretName: k8slab
     secretKey: POSTGRES_PASS
     envName: POSTGRES_PASS
+  - secretName: k8slab
+    secretKey: POSTGRES_DBNAME
+    envName: POSTGRES_DBNAME
+  - secretName: k8slab
+    secretKey: POSTGRES_USER
+    envName: POSTGRES_USER
 
 imagePullSecrets: []
 nameOverride: ""
