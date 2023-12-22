@@ -49,7 +49,3 @@ In case of dns error wait a few minutes. It takes time for ALB to become availab
 ```
 kubectl create token k8slab -n k8slab
 ```
-
-## TODO:
-
-- Adding RDS to terraform, injecting RDS password as secret to k8s, implementing DB in goapp

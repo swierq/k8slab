@@ -168,7 +168,9 @@ module "db" {
   db_name  = local.name_all
   username = local.name_all
   password = resource.random_password.dbpass.result
-  port     = 5432
+
+  manage_master_user_password = false
+  port                        = 5432
 
   multi_az = false
   #db_subnet_group_name   = module.vpc.database_subnet_group
