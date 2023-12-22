@@ -60,13 +60,22 @@ func main() {
 	}
 
 	router := mux.NewRouter()
-	router.HandleFunc("/", reverseOriginIp(db))
+	router.HandleFunc("/", rootEntry)
+	router.HandleFunc("/revip", reverseOriginIp(db))
 	router.HandleFunc("/history", reverseOriginIpHistory(db))
 	log.Info().Msgf("Starting Server on port: %s", *port)
 	err = http.ListenAndServe(fmt.Sprintf(":%s", *port), router)
 	if err != nil {
 		log.Error().Msg("Something went wrong. Exiting.")
 		panic(err)
+	}
+}
+
+func rootEntry(w http.ResponseWriter, r *http.Request) {
+	_, err := fmt.Fprint(w, "OK")
+	if err != nil {
+		log.Error().Msg("Something Went Wrong.")
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
