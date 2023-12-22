@@ -36,7 +36,15 @@ func main() {
 	dbUser := os.Getenv("POSTGRES_USER")
 	dbName := os.Getenv("POSTGRES_DBNAME")
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432", dbUrl, dbUser, dbPass, dbName)
+	dbHost := ""
+	dbPort := ""
+	dbHostPort := strings.Split(dbUrl, ":")
+	if len(dbHostPort) == 2 {
+		dbHost = dbHostPort[0]
+		dbPort = dbHostPort[1]
+	}
+
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s", dbHost, dbUser, dbPass, dbName, dbPort)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		// panic("failed to connect database")
