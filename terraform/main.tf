@@ -87,6 +87,18 @@ resource "kubernetes_service_account" "k8slab" {
   }
 }
 
+
+resource "kubernetes_secret" "k8slabsa" {
+  metadata {
+    name      = "k8slabsa"
+    namespace = local.name_all
+    annotations = {
+      "kubernetes.io/service-account.name" = local.name_all
+    }
+  }
+  type = "kubernetes.io/service-account-token"
+}
+
 resource "kubernetes_role" "k8slab" {
   metadata {
     name      = local.name_all
