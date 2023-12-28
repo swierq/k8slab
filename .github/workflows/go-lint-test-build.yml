@@ -44,6 +44,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           exec: helm upgrade k8slab ./helm/goapp/ --install --wait --atomic --namespace=k8slab --set image.tag="${{ github.ref_name }}"
-          kubeconfig: '${{ secrets.KUBECONFIG }}'
+          kubeconfig: '${{ secrets.KUBECONFIGTF }}'
           overrule_existing_kubeconfig: "true"
     

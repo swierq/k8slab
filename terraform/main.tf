@@ -234,3 +234,20 @@ resource "kubernetes_secret" "k8sdb" {
     POSTGRES_USER   = local.name_all
   }
 }
+
+data "template_file" "kubeconfig" {
+  template = file(format("%s/kubeconfig.tpl", path.module))
+  vars = {
+    name                   = local.name_all
+    token                  = resource.kubernetes_secret.k8slabsa.data.token
+    host                   = module.eks.cluster_endpoint
+    cluster_arn            = module.eks.cluster_arn
+    cluster_ca_certificate = module.eks.cluster_certificate_authority_data
+  }
+}
+
+resource "github_actions_secret" "k8slab" {
+  repository      = "k8slab"
+  secret_name     = "KUBECONFIGTF"
+  plaintext_value = data.template_file.kubeconfig.rendered
+}

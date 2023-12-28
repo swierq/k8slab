@@ -16,6 +16,15 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.6.0"
     }
+    template = {
+      source  = "hashicorp/template"
+      version = "~> 2.2.0"
+    }
+    github = {
+      source  = "integrations/github"
+      version = "~> 5.0"
+    }
+
   }
   required_version = "~> 1.5.7"
 }
