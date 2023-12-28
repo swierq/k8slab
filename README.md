@@ -5,11 +5,19 @@ New version is published to docker hub on tag creation. Tag has to start with le
 
 ## Starting a Cluster
 
+Before starting terraform apply please setup authentication for bot AWS and github provider. Github AUTH eg (export GITHUB_TOKEN=....) is needed as terraform will automatically create kubeconfig secret which is needed in github actions during helm runs.
+
+
 ```
 cd terraform
 terraform init
 terraform apply
 ```
+
+And this is it, running github action should install helm chart on the cluster. All config data should be available in github action secrets at this point. 
+
+
+
 
 ## Setting kube config
 
@@ -43,9 +51,3 @@ Address:          k8s-k8slab-k8slabgo-704fc62c50-1091289972.eu-west-1.elb.amazon
 In case of dns error wait a few minutes. It takes time for ALB to become available on the Internet.
 
 
-## Generate token for SA used in GH actions (not implemented yet)
-
-
-```
-kubectl create token k8slab -n k8slab
-```
