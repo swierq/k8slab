@@ -28,7 +28,7 @@ module "vpc" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "19.0.4"
+  version = "19.21.0"
 
   cluster_name    = local.name_all
   cluster_version = "1.28"
@@ -61,6 +61,11 @@ module "eks" {
       desired_size = 2
     }
   }
+  create_iam_role = true
+
+  depends_on = [
+    module.vpc
+  ]
 }
 
 module "alb-ingress-controller" {
@@ -77,6 +82,9 @@ resource "kubernetes_namespace" "k8s" {
   metadata {
     name = local.name_all
   }
+  depends_on = [
+    module.eks
+  ]
 }
 
 # will use it in in gh actions
@@ -85,6 +93,10 @@ resource "kubernetes_service_account" "k8slab" {
     name      = local.name_all
     namespace = local.name_all
   }
+
+  depends_on = [
+    kubernetes_namespace.k8s
+  ]
 }
 
 
@@ -97,6 +109,10 @@ resource "kubernetes_secret" "k8slabsa" {
     }
   }
   type = "kubernetes.io/service-account-token"
+
+  depends_on = [
+    kubernetes_namespace.k8s
+  ]
 }
 
 resource "kubernetes_role" "k8slab" {
@@ -110,6 +126,10 @@ resource "kubernetes_role" "k8slab" {
     resources  = ["*"]
     verbs      = ["*"]
   }
+
+  depends_on = [
+    kubernetes_namespace.k8s
+  ]
 }
 
 resource "kubernetes_role_binding" "k8slab" {
@@ -128,6 +148,10 @@ resource "kubernetes_role_binding" "k8slab" {
     name      = kubernetes_service_account.k8slab.metadata[0].name
     namespace = local.name_all
   }
+
+  depends_on = [
+    kubernetes_namespace.k8s
+  ]
 }
 
 resource "random_password" "dbpass" {
@@ -164,7 +188,7 @@ module "security_group" {
 
 module "db" {
   source  = "terraform-aws-modules/rds/aws"
-  version = "6.3.0"
+  version = "6.2.0"
 
   identifier = local.name_all
 
@@ -233,6 +257,10 @@ resource "kubernetes_secret" "k8sdb" {
     POSTGRES_DBNAME = local.name_all
     POSTGRES_USER   = local.name_all
   }
+
+  depends_on = [
+    kubernetes_namespace.k8s
+  ]
 }
 
 data "template_file" "kubeconfig" {
