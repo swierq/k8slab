@@ -11,7 +11,9 @@ Before starting terraform apply please setup authentication for bot AWS and gith
 ```
 cd terraform
 terraform init
-terraform apply
+## VPC must exist before creation of eks - caused by dependency
+terraform apply -target=module.vpc
+terraform apply 
 ```
 
 And this is it, running github action should install helm chart on the cluster. All config data should be available in github action secrets at this point. 
@@ -50,4 +52,19 @@ Address:          k8s-k8slab-k8slabgo-704fc62c50-1091289972.eu-west-1.elb.amazon
 
 In case of dns error wait a few minutes. It takes time for ALB to become available on the Internet.
 
+## Destroy
 
+Prior to destroying with terraform, uninstall helm chart. Without this ALB ingress controller will not remove ALB for you and this will have to be done manually.
+
+
+```
+helm uninstall k8slab -n k8slab
+
+```
+
+Now it is safe to remove terraformed resources.
+
+
+```
+terraform destroy
+```
